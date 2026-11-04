@@ -1,16 +1,14 @@
 # CodeGraph local index — machine-specific, never commit.
 .codegraph/
 
-# Local working documents (public subset excludes these; see README).
-OUTLINE.md
-DSH-UPGRADE-IMPACT-REPORT.md
+# Internal working documents: the decision record, and any local session samples.
+DECISIONS.md
+tests/fixtures/
 
 # Editor / OS noise
 .DS_Store
 Thumbs.db
 *.swp
-.idea/
-.vscode/
 
 # Node
 node_modules/

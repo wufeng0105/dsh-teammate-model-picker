@@ -1,45 +1,24 @@
 /**
  * Teammate model picker — browser half.
  *
- * Registers one ADDITIVE entry into the `conversation.input.right` list slot —
- * the compact-controls seat in the composer's standard tool row, immediately
- * before the model seat the official selector owns. The official
- * `conversation.input.model` slot is a `single` slot whose shipped occupant is
- * the only winner, so a second occupant there would shadow the Lead's own
- * selector globally; `conversation.input.right` is `kind: "list"`,
- * `replaceRisk: "none"`, `occupants: []` — the sanctioned additive seat.
+ * One file, four regions, one direction: UI → core → adapters → Harness.
+ * The Client artifact has to stay a single module (the browser module table
+ * loads one factory per package id), so the regions are enforced by
+ * `scripts/check-layers.mjs` instead of by the module system.
  *
- * The entry renders ONLY for teammate (subagent-addressed, continuable)
- * sessions; ordinary sessions render nothing, so the Lead's composer is
- * visually unchanged.
- *
- * Visual parity: this component mirrors the official
- * `dsh-client-ui-model-selection` ModelSelect — the same two-pane menu
- * (root: "Model"/"Reasoning effort" cells → model pane: search + grouped
- * options + check mark), the same trigger (label + " · effort" + chevron),
- * and the same stylesheet copied verbatim with a `tmp_` class prefix and only
- * `--dsw-alias-*` theme-token references. No Harness Client package is
- * imported: only `react` from the browser module table, and the menu is built
- * from plain DOM instead of the primitives' MenuSurface/MenuGroup.
- *
- * Data sources (all official, nothing imported):
- *   - model catalog: `ctx.remote.session.modelCatalog()` — the same
- *     Host-generation catalog the official selector reads, so group names and
- *     model display names (including quota/price text) are never hardcoded;
- *   - durable per-teammate override: this bundle's `Config.overrides` row,
- *     read and written through the Harness settings Remote
- *     (`ctx.remote.settings.describe()` / `.mutate()`). The write lands in the
- *     profile patch layer, so it survives restarts, and the Host half applies
- *     it when this row's fiber restarts.
+ * Seat: `conversation.input.right` — the additive `list` seat next to the
+ * official model seat. `conversation.input.model` is a `single` seat whose
+ * shipped occupant would be shadowed by a second entry, which would remove the
+ * Lead's own selector globally; DESIGN.md records that reasoning.
  *
  * @module @local/dsh-teammate-model-picker/client
  */
 window.__ModuleLoader__.load({
 	id: '@local/dsh-teammate-model-picker',
 	factory: (require) => {
-		var module = { exports: {} };
-		var exports = module.exports;
-		Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+		/* ---------------------------------------------------------------- L3 */
+		/* contracts: the shapes this file assumes about Harness data.       */
+		/* Only these two runtime imports exist, both from the module table. */
 		const React = require('react');
 		const createPortal = (() => {
 			try { return require('react-dom').createPortal; } catch { return null; }
@@ -52,9 +31,35 @@ window.__ModuleLoader__.load({
 		const SLOT = 'conversation.input.right';
 		const ENTRY_ID = 'teammate-model-picker';
 
-		/** Unplaced portal card: hidden but laid out at a fixed origin so offsetWidth/offsetHeight are real (same measure pass as the official ModelSelect). */
+		/** Describe a value's shape for an error the user can act on. */
+		function shapeOf(value) {
+			if (value === null) return 'null';
+			if (Array.isArray(value)) return 'array';
+			return typeof value;
+		}
+
+		/* ---------------------------------------------------------------- L0 */
+		/* adapters: the only code allowed to touch remote/theme/slot names. */
+		const THEME = {
+			menu: 'tmp_menu',
+			trigger: 'tmp_trigger',
+		};
+
+		/** `conversation.input.right` is a list seat; injecting into a missing seat is a no-op. */
+		function bindSeat(ctx, onMissing) {
+			if (typeof ctx?.slots?.inject !== 'function' || typeof ctx?.slots?.register !== 'function') {
+				onMissing('ctx.slots.inject/register is not available');
+				return false;
+			}
+			return true;
+		}
+
+		/** Unplaced portal card: laid out at a fixed origin so offsetWidth/Height are real. */
 		const MEASURE_STYLE = { visibility: 'hidden', left: 0, top: 0 };
 
+		/* ------------------------------------------------------------------ */
+		/* L1 core: pure decisions — no ctx, no DOM below this banner.        */
+		/* ------------------------------------------------------------------ */
 		const zh = {
 			'picker.label': '队友模型',
 			'picker.hint': '为这个队友切换模型；不影响主线会话和全局默认模型',
@@ -70,6 +75,7 @@ window.__ModuleLoader__.load({
 			'picker.empty': '没有可用的模型',
 			'picker.noResults': '没有匹配的模型',
 			'picker.back': '返回',
+			'picker.clear': '恢复派发路由',
 		};
 		const en = {
 			'picker.label': 'Teammate model',
@@ -86,10 +92,40 @@ window.__ModuleLoader__.load({
 			'picker.empty': 'No models available',
 			'picker.noResults': 'No matching models',
 			'picker.back': 'Back',
+			'picker.clear': 'Use dispatched route',
 		};
 
-		// Copy of the official ModelSelect.module.css, class prefix renamed to
-		// `tmp_`; every color/radius/elevation is still a --dsw-alias-* token.
+		/** The group ids the product groups first; unknown ids keep their order. */
+		function groupRank(id) {
+			return id === 'deepseek-account' ? 0 : id === 'deepseek-official' ? 1 : 2;
+		}
+
+		function rankByName(models, query) {
+			const q = query.trim().toLowerCase();
+			if (q.length === 0) return models;
+			return models.filter((model) => `${model.name} ${model.id}`.toLowerCase().includes(q));
+		}
+
+		function overrideFor(namespace, childId) {
+			const found = (namespace?.overrides ?? []).find((entry) => entry?.childSessionId === childId);
+			if (found === undefined) return null;
+			return {
+				provider: found.provider,
+				model: found.model,
+				...(found.reasoningEffort ? { reasoningEffort: found.reasoningEffort } : {}),
+			};
+		}
+
+		/** `showPicker` is a real switch: absent means on, `false` hides the entry. */
+		function showPickerFrom(namespace) {
+			if (namespace === null || namespace === undefined) return true;
+			return namespace.showPicker !== false;
+		}
+
+		/* ------------------------------------------------------------------ */
+		/* L0 adapters: settings / catalog / locale / styles                  */
+		/* ------------------------------------------------------------------ */
+		/** Copy of the official ModelSelect.module.css, `tmp_` prefix, tokens only. */
 		const css = '.tmp_root{min-width:0;position:relative}.tmp_trigger{border-radius:var(--dsw-radius-sm);min-width:0;max-width:min(360px,45cqw);height:28px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;outline:none;align-items:center;gap:4px;padding:0 4px 0 8px;font-size:13px;font-weight:400;line-height:20px;display:flex}'
 			+ '.tmp_trigger:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}'
 			+ '.tmp_trigger:focus-visible:not([data-selection-focus]){box-shadow:0 0 0 2px var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary))}'
@@ -106,11 +142,11 @@ window.__ModuleLoader__.load({
 			+ '.tmp_warning{background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-state-warn-label)}'
 			+ '.tmp_retry{color:inherit;font:inherit;cursor:pointer;background:0 0;border:none;flex:none;padding:0;font-weight:600}'
 			+ '.tmp_searchRow{flex-shrink:0;margin:2px 0 3px;position:relative}'
-			+ '.tmp_searchRow .tmp_search{border-radius:var(--dsw-radius-md);background:0 0;border:0 solid #0000;height:auto;padding:5px 7px;display:flex}'
+			+ '.tmp_searchRow .tmp_search{border-radius:var(--dsw-radius-md);background:0 0;border:0 solid transparent;height:auto;padding:5px 7px;display:flex}'
 			+ '.tmp_searchRow .tmp_searchWithQuery{padding-right:34px}'
 			+ '.tmp_searchClear{width:24px;height:24px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:50%;justify-content:center;align-items:center;padding:0;display:inline-flex;position:absolute;top:50%;right:4px;transform:translateY(-50%)}'
 			+ '.tmp_searchClear:hover,.tmp_searchClear:focus-visible{background:var(--dsw-alias-interactive-bg-hover);outline:none}'
-			+ '.tmp_searchRow .tmp_search:focus-within{border-color:#0000}'
+			+ '.tmp_searchRow .tmp_search:focus-within{border-color:transparent}'
 			+ '.tmp_searchRow .tmp_search input{padding:0;font-size:12px;line-height:normal;background:0 0;border:0;outline:none;color:inherit;width:100%}'
 			+ '.tmp_searchRow .tmp_search input::placeholder{color:var(--dsw-alias-label-caption)}'
 			+ '.tmp_groups{min-height:0;overflow-y:auto}'
@@ -146,27 +182,54 @@ window.__ModuleLoader__.load({
 			throw new Error(`${what}: ${response.error?.code ?? 'remote'}: ${response.error?.message ?? 'failed'}`);
 		}
 
+		/** A shape that moved must be reported, not silently treated as "no data". */
+		function assertNamespaces(view) {
+			if (view === null || typeof view !== 'object' || !Array.isArray(view.namespaces)) {
+				throw new Error(`settings.describe(): expected { namespaces: [] }, got ${shapeOf(view)}`);
+			}
+			return view;
+		}
+
+		function assertCatalog(value) {
+			if (value === null || typeof value !== 'object' || !Array.isArray(value.groups)) {
+				throw new Error(`session.modelCatalog(): expected { groups: [] }, got ${shapeOf(value)}`);
+			}
+			for (const group of value.groups) {
+				if (group === null || typeof group !== 'object' || typeof group.id !== 'string' || !Array.isArray(group.models)) {
+					throw new Error('session.modelCatalog(): every group needs { id: string, models: [] }');
+				}
+			}
+			return value;
+		}
+
 		function makePickerApi(ctx) {
+			/** One write path for both "pick" and "clear": same op, same revision. */
+			async function mutateOverrides(list, revision) {
+				const after = unwrap(
+					await ctx.remote.settings.mutate(ROW_ID, [{ op: 'set', path: ['overrides'], value: list }], revision),
+					'settings mutate',
+				);
+				const raw = after?.value?.overrides ?? after?.user?.overrides;
+				return Array.isArray(raw) ? raw : list;
+			}
 			return {
 				async loadCatalog() {
-					return unwrap(await ctx.remote.session.modelCatalog(), 'model catalog');
+					return assertCatalog(unwrap(await ctx.remote.session.modelCatalog(), 'model catalog'));
 				},
 				async readNamespace() {
-					const view = unwrap(await ctx.remote.settings.describe(), 'settings describe');
-					const entry = (view.namespaces ?? []).find((candidate) => candidate.ns === ROW_ID) ?? null;
+					const view = assertNamespaces(unwrap(await ctx.remote.settings.describe(), 'settings describe'));
+					const entry = view.namespaces.find((candidate) => candidate?.ns === ROW_ID) ?? null;
 					if (entry === null) return null;
-					const raw = entry.value?.overrides ?? entry.user?.overrides;
-					return { revision: entry.revision, overrides: Array.isArray(raw) ? raw : [] };
-				},
-				overrideFor(state, childId) {
-					const found = (state?.overrides ?? []).find((entry) => entry?.childSessionId === childId);
-					if (found === undefined) return null;
+					const rawOverrides = entry.value?.overrides ?? entry.user?.overrides;
+					const rawShow = entry.value?.showPicker ?? entry.user?.showPicker;
 					return {
-						provider: found.provider,
-						model: found.model,
-						...(found.reasoningEffort ? { reasoningEffort: found.reasoningEffort } : {}),
+						revision: entry.revision,
+						overrides: Array.isArray(rawOverrides) ? rawOverrides : [],
+						showPicker: rawShow !== false,
 					};
 				},
+				overrideFor,
+				showPickerFrom,
 				async writeOverride(childId, selection) {
 					const state = await this.readNamespace();
 					const list = (state?.overrides ?? []).filter((entry) => entry?.childSessionId !== childId);
@@ -176,12 +239,12 @@ window.__ModuleLoader__.load({
 						model: selection.model,
 						...(selection.reasoningEffort ? { reasoningEffort: selection.reasoningEffort } : {}),
 					});
-					const after = unwrap(
-						await ctx.remote.settings.mutate(ROW_ID, [{ op: 'set', path: ['overrides'], value: list }], state?.revision),
-						'settings mutate',
-					);
-					const raw = after?.value?.overrides ?? after?.user?.overrides;
-					return Array.isArray(raw) ? raw : list;
+					return mutateOverrides(list, state?.revision);
+				},
+				async clearOverride(childId) {
+					const state = await this.readNamespace();
+					const list = (state?.overrides ?? []).filter((entry) => entry?.childSessionId !== childId);
+					return mutateOverrides(list, state?.revision);
 				},
 			};
 		}
@@ -200,12 +263,9 @@ window.__ModuleLoader__.load({
 				h('path', { d: 'M2.5 7.5 5.5 10.5 11.5 3.5', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }));
 		}
 
-		function rankByName(models, query) {
-			const q = query.trim().toLowerCase();
-			if (q.length === 0) return models;
-			return models.filter((model) => `${model.name} ${model.id}`.toLowerCase().includes(q));
-		}
-
+		/* ------------------------------------------------------------------ */
+		/* UI: rendering only. Reads props and the picker api, nothing else.   */
+		/* ------------------------------------------------------------------ */
 		/**
 		 * Trigger + two-pane menu, mirroring the official ModelSelect.
 		 * Props: `sessionId`, `useSession`, `useProjection`, `t`, `picker`.
@@ -218,6 +278,7 @@ window.__ModuleLoader__.load({
 			const [catalog, setCatalog] = useState(null);
 			const [catalogError, setCatalogError] = useState(null);
 			const [override, setOverride] = useState(null);
+			const [showPicker, setShowPicker] = useState(true);
 			const [status, setStatus] = useState('loading');
 			const [writeError, setWriteError] = useState(null);
 			const [open, setOpen] = useState(false);
@@ -247,14 +308,14 @@ window.__ModuleLoader__.load({
 				picker.readNamespace().then((state) => {
 					if (!alive) return;
 					setOverride(picker.overrideFor(state, childId));
+					setShowPicker(picker.showPickerFrom(state));
 				}).catch(() => { });
 				return () => { alive = false; };
 			}, [childId, picker]);
 
 			const groups = useMemo(() => {
 				const ordered = [...(catalog?.groups ?? [])];
-				const rank = (id) => id === 'deepseek-account' ? 0 : id === 'deepseek-official' ? 1 : 2;
-				return ordered.sort((a, b) => rank(a.id) - rank(b.id)).map((group) => ({
+				return ordered.sort((a, b) => groupRank(a.id) - groupRank(b.id)).map((group) => ({
 					...group,
 					provider: { id: group.id, name: group.name },
 				}));
@@ -297,8 +358,6 @@ window.__ModuleLoader__.load({
 			 * (`rect.top - 8 - lh`), clamp to the viewport with a 12px margin,
 			 * and re-measure whenever the menu's own size changes (pane switch,
 			 * search filtering, catalog load) via ResizeObserver.
-			 * useLayoutEffect makes the measure pass happen before paint, so the
-			 * menu never flashes at the wrong origin.
 			 */
 			useLayoutEffect(() => {
 				if (!open) { setMenuPos(null); return undefined; }
@@ -361,11 +420,11 @@ window.__ModuleLoader__.load({
 				if (restoreFocus) queueMicrotask(() => triggerRef.current?.focus());
 			};
 
-			const submit = useCallback(async (selection) => {
+			const runWrite = useCallback(async (write) => {
 				setWriteError(null);
 				setStatus('writing');
 				try {
-					const next = await picker.writeOverride(childId, selection);
+					const next = await write();
 					setOverride(picker.overrideFor({ overrides: next }, childId));
 					setStatus('ready');
 					close(true);
@@ -375,7 +434,11 @@ window.__ModuleLoader__.load({
 				}
 			}, [childId, picker, t]);
 
+			const submit = useCallback((selection) => runWrite(() => picker.writeOverride(childId, selection)), [childId, picker, runWrite]);
+			const clear = useCallback(() => runWrite(() => picker.clearOverride(childId)), [childId, picker, runWrite]);
+
 			if (!isTeammate) return null;
+			if (!showPicker) return null;
 
 			const selected = (group, model) => effective !== null
 				&& effective.provider === group.id && effective.model === model.id;
@@ -405,6 +468,12 @@ window.__ModuleLoader__.load({
 				h('span', { className: 'tmp_cellLabel' }, t('picker.effort')),
 				h('span', { className: 'tmp_cellValue' }, effortLabel ?? t('picker.defaultEffort')),
 				h(IconChevronRight),
+				) : null,
+				override !== null ? h('button', {
+					key: 'clear-cell', type: 'button', role: 'menuitem', className: 'tmp_cell',
+					disabled: busy, onClick: () => { void clear(); },
+				},
+				h('span', { className: 'tmp_cellLabel' }, t('picker.clear')),
 				) : null,
 			] : null,
 			pane === 'model' ? [
@@ -488,11 +557,17 @@ window.__ModuleLoader__.load({
 			);
 		}
 
+		/* ------------------------------------------------------------------ */
+		/* L2 entry: registration only.                                        */
+		/* ------------------------------------------------------------------ */
 		const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.settings'];
 
 		function apply(ctx) {
 			ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'teammate-model-picker: dictionaries');
 			ctx.effect(injectStylesheet, 'teammate-model-picker: stylesheet');
+			// Fail-closed: without the seat service there is nothing to contribute,
+			// and a throw here would take the whole slot down with it.
+			if (!bindSeat(ctx, (reason) => ctx.logger?.warn?.(`teammate-model-picker: ${reason} — the picker seat stays empty`))) return;
 			const api = makePickerApi(ctx);
 			ctx.slots.inject(SLOT, () => ctx.slots.register({
 				name: SLOT,
@@ -503,8 +578,10 @@ window.__ModuleLoader__.load({
 			}, TeammateModelPicker));
 		}
 
-		exports.inject = inject;
-		exports.apply = apply;
-		return module.exports;
+		const plugin = { inject, apply };
+		// Marker retained from the shipped artifact: the template does not need it,
+		// but dropping it would be the only untested delta in this rewrite.
+		Object.defineProperty(plugin, Symbol.toStringTag, { value: 'Module' });
+		return plugin;
 	},
 });

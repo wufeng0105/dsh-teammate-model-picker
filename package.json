@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-teammate-model-picker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Give DSH teammate (continuable subagent) sessions their own model picker: switch a teammate to another available model without touching the Lead session or the global default model.",
@@ -15,16 +15,26 @@
     "index.js",
     "client.js",
     "cordis.patch.yml",
+    "host",
     "vendor/*.mjs",
     "vendor/LICENSE-*",
-    "tools/session-model-log.mjs",
+    "tools",
     "locale/*.json",
     "icon.svg",
-    "OUTLINE.md",
+    "README.md",
+    "LICENSE",
+    "DESIGN.md",
+    "CONTEXT.md",
+    "CHANGELOG.md",
     "REPORT.md"
   ],
   "engines": {
     "dsh": ">=0.2.1-rc.5 <0.3.0"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/",
+    "doctor": "node tools/doctor.mjs"
   },
   "dsh": {
     "bundle": {

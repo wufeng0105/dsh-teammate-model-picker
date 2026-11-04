@@ -17,6 +17,7 @@
     "error": "Switch failed",
     "empty": "No models available",
     "noResults": "No matching models",
-    "back": "Back"
+    "back": "Back",
+    "clear": "Use dispatched route"
   }
 }
