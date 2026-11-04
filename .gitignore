@@ -1,0 +1,23 @@
+# CodeGraph local index — machine-specific, never commit.
+.codegraph/
+
+# Local working documents (public subset excludes these; see README).
+OUTLINE.md
+DSH-UPGRADE-IMPACT-REPORT.md
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+
+# Backups
+*.bak
+*.bak-*
+*~

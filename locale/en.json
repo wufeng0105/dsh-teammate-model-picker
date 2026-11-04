@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "title": "Teammate Model Picker",
+    "description": "Adds a model picker to teammate (continuable subagent) sessions so a teammate stalled on an exhausted quota can continue on another available model — without changing the Lead session or the global default model."
+  },
+  "picker": {
+    "label": "Teammate model",
+    "hint": "Switch this teammate to another model; the Lead session and the global default model are unchanged",
+    "override": "(teammate)",
+    "model": "Model",
+    "effort": "Reasoning effort",
+    "loading": "Loading models…",
+    "search": "Search models",
+    "default": "Select model",
+    "defaultEffort": "Default",
+    "applying": "Switching…",
+    "error": "Switch failed",
+    "empty": "No models available",
+    "noResults": "No matching models",
+    "back": "Back"
+  }
+}

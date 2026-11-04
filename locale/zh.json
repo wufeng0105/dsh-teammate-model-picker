@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "title": "队友模型选择器",
+    "description": "在队友（可继续的 subagent）会话里加一个模型选择器：额度耗尽的队友可以换到另一个还有额度的模型继续执行，且不改变主线会话与全局默认模型。"
+  },
+  "picker": {
+    "label": "队友模型",
+    "hint": "为这个队友切换模型；不影响主线会话和全局默认模型",
+    "override": "（队友）",
+    "model": "模型",
+    "effort": "推理等级",
+    "loading": "正在加载模型…",
+    "search": "搜索模型",
+    "default": "请选择模型",
+    "defaultEffort": "Default",
+    "applying": "正在切换…",
+    "error": "切换失败",
+    "empty": "没有可用的模型",
+    "noResults": "没有匹配的模型",
+    "back": "返回"
+  }
+}

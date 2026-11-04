@@ -1,0 +1,13 @@
+# Teammate model picker — Host row.
+#
+# `config.overrides` is the durable per-teammate model override table. It is
+# written by the teammate picker through the Harness settings Remote
+# (`settings.mutate`) and therefore persists in this profile's patch layer,
+# which survives Harness restarts and upgrades. The row id is also the settings
+# namespace the client half addresses, so do not rename `id` alone.
+- insert:
+    - id: teammate-model-picker
+      name: '@local/dsh-teammate-model-picker'
+      config:
+        showPicker: true
+        overrides: []

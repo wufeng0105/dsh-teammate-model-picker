@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Teammate model picker">
+  <rect width="48" height="48" rx="11" fill="#1f6feb"/>
+  <path d="M14 15.5h9.5a6 6 0 0 1 6 6v5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <path d="M34 15.5h-4.5" fill="none" stroke="#9cc4ff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="34.5" cy="15.5" r="3.6" fill="#ffffff"/>
+  <circle cx="29.5" cy="30.5" r="3.6" fill="#9cc4ff"/>
+  <path d="M20.5 24.5 24 30.5l-3.5 6" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <circle cx="13.5" cy="15.5" r="2.6" fill="#ffffff" opacity="0.9"/>
+  <circle cx="20.5" cy="37" r="2.2" fill="#9cc4ff" opacity="0.8"/>
+</svg>
