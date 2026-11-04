@@ -9,16 +9,17 @@
 import { exists, finish, lineCount, read, run, walk } from './lib/check.mjs';
 
 const REQUIRED = ['README.md', 'DESIGN.md', 'CONTEXT.md', 'CHANGELOG.md'];
-// Count every doc the project keeps, including the internal decision record and
-// the verification record: a budget that excludes the files it applies to is a
-// budget that measures nothing.
-const BUDGETED = [...REQUIRED, 'REPORT.md', 'DECISIONS.md'].filter(exists);
+// Count every doc the project keeps, including the internal decision record, the
+// verification record and the release runbook: a budget that excludes the files
+// it applies to is a budget that measures nothing.
+const BUDGETED = [...REQUIRED, 'REPORT.md', 'RELEASE.md', 'DECISIONS.md'].filter(exists);
 const REFERENCED = BUDGETED;
 
 // Counted like `text.split('\n').length`, so a trailing newline counts as a
-// line: six docs carry six phantom lines. 430 ≈ the 0.2.0 budget (400) plus the
-// release-cleanup records, still far under the third-of-code ceiling in D3.
-const DOC_BUDGET = 430;
+// line: each doc carries a phantom line. 600 = the 0.2.0 budget (400) plus the
+// release records and the RELEASE.md runbook; the real ceiling stays D3
+// (docs ≤ a third of the code), which is what keeps this honest.
+const DOC_BUDGET = 600;
 const codeFiles = ['index.js', 'client.js', ...walk('host'), ...walk('tools'), ...walk('scripts')];
 const docLines = BUDGETED.reduce((sum, file) => sum + lineCount(file), 0);
 const codeLines = codeFiles.reduce((sum, file) => sum + lineCount(file), 0);

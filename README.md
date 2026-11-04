@@ -90,6 +90,8 @@ node tools/session-model-log.mjs <teammateSessionId>
 
 公开仓库是本地项目的子集：内部工作文档（决策记录、写作账本、耦合审计、改造方案）不随仓库发布，正文中提到它们的位置在仓库里读不到，属预期。
 
+维护者发布流程（push → Tag → Release → npm，含一致性核对与回滚）见 [RELEASE.md](./RELEASE.md)。
+
 ## License
 
 MIT，见 [LICENSE](./LICENSE)。
