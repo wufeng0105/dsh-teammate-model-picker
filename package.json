@@ -1,6 +1,6 @@
 {
   "name": "@wufeng0105/dsh-teammate-model-picker",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "给 DSH 队友会话加一个模型选择器：队友额度用完时直接换个还有额度的模型让它继续跑，不用重建队友，也不影响你的会话和全局默认模型。",
   "license": "MIT",

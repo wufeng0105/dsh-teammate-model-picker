@@ -3,6 +3,17 @@
 本插件只声明它**真的验证过**的 DSH 版本；`engines.dsh` 与 `host/contracts.mjs` 的
 `TESTED_DSH_VERSION`、以及本文件的记录由 `scripts/check-version.mjs` 断言三者一致。
 
+## 0.3.2
+
+发布产物的字节级对齐（不改代码）。
+
+- 已发布的 0.3.1 里 `vendor/schemastery.mjs` 末尾多一个 CRLF，而仓库 blob 是 LF：
+  `core.autocrlf=input` 让 `git status` 看不见它，打包时被带进了线上包。
+- 新增 `.gitattributes`（`* text=auto eol=lf`），全部 tracked 文本文件确认为 LF。
+- 本版起 `npm pack` 的 shasum 可直接与 `npm view dist.shasum` 比对（tag 树 == 线上包）。
+
+已适配（verified）：**DSH 0.2.1-rc.5**。
+
 ## 0.3.1
 
 发布链路对齐（不改代码）。

@@ -1,0 +1,7 @@
+# Keep every checked-out text file byte-identical to its blob.
+#
+# Without this, `core.autocrlf` decides per machine, and a file can carry a
+# CRLF in the working tree that git hides from `git status` — so `npm publish`
+# packs bytes the repository never had. That divergence is invisible to every
+# command except a byte-level pack comparison (RELEASE.md, "内容同源核对").
+* text=auto eol=lf
