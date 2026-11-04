@@ -6,7 +6,7 @@ import {
     callWaterfall, createFakeAgent, createFakeCtx, createFakeProjections, listenerFor,
 } from '../support/fake-host.mjs';
 
-const OVERRIDE = { childSessionId: 'child-1', provider: 'buddy', model: 'hy4free', reasoningEffort: 'high' };
+const OVERRIDE = { childSessionId: 'child-1', provider: 'provider-a', model: 'model-x', reasoningEffort: 'high' };
 
 function boot({
     overrides = [],
@@ -60,30 +60,30 @@ test('an override installs the three waterfalls and records the intent once', as
 
     assert.deepEqual(appended, [{
         type: 'model/selection',
-        data: { provider: 'buddy', model: 'hy4free', reasoningEffort: 'high' },
+        data: { provider: 'provider-a', model: 'model-x', reasoningEffort: 'high' },
     }]);
     assert.equal(log.info.length, 1);
     assert.match(log.info[0], /child-1/);
 
     const assembled = await callWaterfall(assemble, [{}, {}], [{ variables: { keep: 'me' } }]);
-    assert.deepEqual(assembled.variables, { keep: 'me', provider: 'buddy', model: 'hy4free' });
+    assert.deepEqual(assembled.variables, { keep: 'me', provider: 'provider-a', model: 'model-x' });
 
     const resolved = { provider: 'old', model: 'old-model', reasoningEffort: 'low', maxTokens: 128000 };
     const rewritten = await callWaterfall(request, [{}], [resolved]);
     assert.deepEqual(rewritten, {
-        provider: 'buddy', model: 'hy4free', reasoningEffort: 'high', maxTokens: 128000,
+        provider: 'provider-a', model: 'model-x', reasoningEffort: 'high', maxTokens: 128000,
     });
     assert.equal(log.error.length, 0, 'assemble ran first, so the B1 witness stays quiet');
 });
 
 test('request drops the inherited effort when the override carries none', async () => {
-    const plain = { childSessionId: 'child-1', provider: 'buddy', model: 'hy4free' };
+    const plain = { childSessionId: 'child-1', provider: 'provider-a', model: 'model-x' };
     const { agentListeners } = boot({ overrides: [plain] });
     const assemble = listenerFor(agentListeners, 'system-prompt/assemble');
     const request = listenerFor(agentListeners, 'agent/request');
     await callWaterfall(assemble, [{}, {}], [{ variables: {} }]);
     const rewritten = await callWaterfall(request, [{}], [{ provider: 'old', model: 'old', reasoningEffort: 'low' }]);
-    assert.deepEqual(rewritten, { provider: 'buddy', model: 'hy4free' });
+    assert.deepEqual(rewritten, { provider: 'provider-a', model: 'model-x' });
 });
 
 test('the switch notice is appended only past the first step', async () => {

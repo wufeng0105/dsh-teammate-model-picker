@@ -11,10 +11,10 @@
  * shipped occupant would be shadowed by a second entry, which would remove the
  * Lead's own selector globally; DESIGN.md records that reasoning.
  *
- * @module @local/dsh-teammate-model-picker/client
+ * @module @wufeng0105/dsh-teammate-model-picker/client
  */
 window.__ModuleLoader__.load({
-	id: '@local/dsh-teammate-model-picker',
+	id: '@wufeng0105/dsh-teammate-model-picker',
 	factory: (require) => {
 		/* ---------------------------------------------------------------- L3 */
 		/* contracts: the shapes this file assumes about Harness data.       */
@@ -165,12 +165,12 @@ window.__ModuleLoader__.load({
 			+ '.tmp_cellChevron{width:12px;height:12px;color:var(--dsw-alias-menu-icon);flex:none}'
 			+ '.tmp_badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;line-height:16px;color:var(--dsw-alias-label-caption);white-space:nowrap}';
 
-		const tagId = '@local/dsh-teammate-model-picker/picker.module.css';
+		const tagId = '@wufeng0105/dsh-teammate-model-picker/picker.module.css';
 		function injectStylesheet() {
 			if (typeof document === 'undefined') return () => { };
 			if (document.querySelector(`style[data-plugin-css="${tagId}"]`) !== null) return () => { };
 			const tag = document.createElement('style');
-			tag.dataset.plugin = '@local/dsh-teammate-model-picker';
+			tag.dataset.plugin = '@wufeng0105/dsh-teammate-model-picker';
 			tag.dataset.pluginCss = tagId;
 			tag.textContent = css;
 			document.head.appendChild(tag);

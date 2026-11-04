@@ -1,9 +1,21 @@
 {
-  "name": "@local/dsh-teammate-model-picker",
-  "version": "0.2.0",
-  "private": true,
+  "name": "@wufeng0105/dsh-teammate-model-picker",
+  "version": "0.3.0",
   "type": "module",
   "description": "Give DSH teammate (continuable subagent) sessions their own model picker: switch a teammate to another available model without touching the Lead session or the global default model.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wufeng0105/dsh-teammate-model-picker.git"
+  },
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "subagent",
+    "model-selection"
+  ],
   "icon": "icon.svg",
   "exports": {
     ".": "./index.js",
@@ -33,7 +45,7 @@
   },
   "scripts": {
     "check": "node scripts/check.mjs",
-    "test": "node --test tests/",
+    "test": "node --test tests/**/*.test.mjs",
     "doctor": "node tools/doctor.mjs"
   },
   "dsh": {

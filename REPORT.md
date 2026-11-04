@@ -38,7 +38,7 @@ node tools/session-model-log.mjs <teammateSessionId>
 
 ## 3. 0.1.0 的历史实测（记录，不是当前断言）
 
-在 DSH `0.2.1-rc.5` 上，用一次真实的额度失败走通了 B-1…B-4：`subagent/descriptor` 记下派发路由 `tierflow/tierflow_pro` → 同一路由的 `request/header` → `turn/end ERROR {"code":"QUOTA_EXCEEDED"}` → `model/selection` 记为 `buddy/hy4free`（effort `high`）→ 随后 `request/header` 变成该 override → `turn/end completed`。跨重启那条也在当时实测过（重启后首次唤醒仍走 override 路由）。
+在 DSH `0.2.1-rc.5` 上，用一次真实的额度失败走通了 B-1…B-4：`subagent/descriptor` 记下派发路由 `provider-a/model-a` → 同一路由的 `request/header` → `turn/end ERROR {"code":"QUOTA_EXCEEDED"}` → `model/selection` 记为 `provider-b/model-b`（effort `high`）→ 随后 `request/header` 变成该 override → `turn/end completed`。跨重启那条也在当时实测过（重启后首次唤醒仍走 override 路由）。路由名按中性占位书写：当时的具体 provider/model 名属本机配置，不随仓库发布。
 
 这些是**当时**的观察：它们现在由 §1 的断言与 §2 的流程重新判定，不再由这段文字保证。
 

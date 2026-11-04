@@ -29,8 +29,8 @@ test('a synthetic v4 log round-trips and yields the four route records', () => {
         const file = writeLog(root, '--ws--', 'abc123', [
             { type: 'session', id: 'abc123' },
             { type: 'event', event: { type: 'subagent/descriptor', seq: 0, data: { mode: 'continuable' } } },
-            { type: 'model/selection', seq: 50, data: { provider: 'buddy', model: 'hy4free' } },
-            { type: 'request/header', seq: 59, data: { header: { config: { provider: 'buddy', model: 'hy4free' } } } },
+            { type: 'model/selection', seq: 50, data: { provider: 'provider-a', model: 'model-x' } },
+            { type: 'request/header', seq: 59, data: { header: { config: { provider: 'provider-a', model: 'model-x' } } } },
             { type: 'turn/end', seq: 63, data: { reason: { kind: 'completed' } } },
         ]);
 

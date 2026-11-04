@@ -53,6 +53,12 @@ test('identity gate goes red when the row id drifts', () => {
         'I3');
 });
 
+test('identity gate goes red when the package name appears under another scope', () => {
+    expectRed('identity-scope', 'check-identity.mjs',
+        (dir) => patch(dir, 'README.md', (text) => text.replace('@wufeng0105/dsh-teammate-model-picker', '@someone-else/dsh-teammate-model-picker')),
+        'I8');
+});
+
 test('layer gate goes red on a core → adapter import', () => {
     expectRed('layers', 'check-layers.mjs',
         (dir) => patch(dir, 'host/core/route.mjs', (text) => `import { IDENTITY } from '../adapters/dsh-host.mjs';\n${text}`),

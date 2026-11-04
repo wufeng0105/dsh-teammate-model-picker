@@ -12,7 +12,7 @@
 export const IDENTITY = 'teammate-model-picker';
 
 /** npm package name = Cordis row `name` = Client module-table id. */
-export const PACKAGE_NAME = '@local/dsh-teammate-model-picker';
+export const PACKAGE_NAME = '@wufeng0105/dsh-teammate-model-picker';
 
 /** The three fields that decide which LLM answers a request. Nothing else routes. */
 export const ROUTE_FIELDS = Object.freeze(['provider', 'model', 'reasoningEffort']);

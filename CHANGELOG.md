@@ -3,6 +3,19 @@
 本插件只声明它**真的验证过**的 DSH 版本；`engines.dsh` 与 `host/contracts.mjs` 的
 `TESTED_DSH_VERSION`、以及本文件的记录由 `scripts/check-version.mjs` 断言三者一致。
 
+## 0.3.0
+
+面向发布的清理（不改任何一条不变量、不改路由语义、不改文档预算口径）。
+
+- **包身份可发布**：包名从本地 scope 迁到 `@wufeng0105/dsh-teammate-model-picker`，
+  去掉 `private: true`；`repository`/`license`/`keywords` 补齐 npm 通道所需字段。
+  身份门新增 I7（旧 scope 不得残留）与 I8（名字只能以完整包名出现）两条漂移断言，
+  并补负例；`row id`（settings/locale/entry 命名空间）不变，用户配置层无需迁移。
+- **验证记录中立化**：测试夹具与历史实测中的真实 provider/model 名改为 `provider-a` /
+  `model-x` 等占位 —— 本机路由配置不随仓库发布，历史实测事实不变。
+
+已适配（verified）：**DSH 0.2.1-rc.5**。
+
 ## 0.2.0
 
 工程化改造（不改任何一条不变量，不改路由语义）。

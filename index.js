@@ -17,7 +17,7 @@
  * L2 entry: read Config, build the adapter, hand core decisions to it. No
  * domain rule and no Harness contract string lives in this file.
  *
- * @module @local/dsh-teammate-model-picker
+ * @module @wufeng0105/dsh-teammate-model-picker
  */
 import { randomUUID } from 'node:crypto';
 import { IDENTITY } from './host/contracts.mjs';

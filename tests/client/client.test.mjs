@@ -38,7 +38,7 @@ test('the written entry is accepted by the Host half and exists in both locale f
         remote: remoteWith({ namespaces: [], mutate: (...args) => calls.push(args) }),
     });
     plugin.apply(ctx);
-    await apiOf(records).writeOverride('child-1', { provider: 'buddy', model: 'hy4free', reasoningEffort: 'high' });
+    await apiOf(records).writeOverride('child-1', { provider: 'provider-a', model: 'model-x', reasoningEffort: 'high' });
     const written = plain(calls[0][1][0].value[0]);
     assert.deepEqual(normalizeOverride(written), written, 'the Host side accepts what the Client side writes');
 
@@ -163,7 +163,7 @@ test('writeOverride sends one op with the whole list and the observed revision',
         remote: remoteWith({ namespaces, mutate: (...args) => calls.push(args) }),
     });
     plugin.apply(ctx);
-    const list = await apiOf(records).writeOverride('child-1', { provider: 'buddy', model: 'hy4free', reasoningEffort: 'high' });
+    const list = await apiOf(records).writeOverride('child-1', { provider: 'provider-a', model: 'model-x', reasoningEffort: 'high' });
 
     assert.equal(calls.length, 1);
     assert.equal(calls[0][0], 'teammate-model-picker');
@@ -172,7 +172,7 @@ test('writeOverride sends one op with the whole list and the observed revision',
         path: ['overrides'],
         value: [
             { childSessionId: 'other', provider: 'x', model: 'y' },
-            { childSessionId: 'child-1', provider: 'buddy', model: 'hy4free', reasoningEffort: 'high' },
+            { childSessionId: 'child-1', provider: 'provider-a', model: 'model-x', reasoningEffort: 'high' },
         ],
     }]);
     assert.equal(calls[0][2], 3, 'the observed revision is handed back unchanged');
@@ -185,9 +185,9 @@ test('an override without effort carries no empty effort key', async () => {
         remote: remoteWith({ namespaces: [], mutate: (...args) => calls.push(args) }),
     });
     plugin.apply(ctx);
-    await apiOf(records).writeOverride('child-1', { provider: 'buddy', model: 'hy4free' });
+    await apiOf(records).writeOverride('child-1', { provider: 'provider-a', model: 'model-x' });
     const entry = plain(calls[0][1][0].value[0]);
-    assert.deepEqual(entry, { childSessionId: 'child-1', provider: 'buddy', model: 'hy4free' });
+    assert.deepEqual(entry, { childSessionId: 'child-1', provider: 'provider-a', model: 'model-x' });
     assert.equal('reasoningEffort' in entry, false);
 });
 

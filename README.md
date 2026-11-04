@@ -44,7 +44,7 @@ plugin_manager install_bundle  target = <本目录绝对路径>
 卸载：
 
 ```powershell
-plugin_manager remove_bundle  target = @local/dsh-teammate-model-picker
+plugin_manager remove_bundle  target = @wufeng0105/dsh-teammate-model-picker
 ```
 
 > 三个层面要分清：**安装/卸载 bundle** 改的是 profile 的 `package.json` 里 `dsh.profile.bundles`；**bundle 默认**在源 `cordis.patch.yml` 里；**用户配置**（你选的模型）在用户 profile patch 层的 `- id: teammate-model-picker` 这一行。清空用户配置 ≠ 卸载 bundle。

@@ -6,7 +6,7 @@
 # it lives in the user's config layer instead of the session log.
 - insert:
     - id: teammate-model-picker
-      name: '@local/dsh-teammate-model-picker'
+      name: '@wufeng0105/dsh-teammate-model-picker'
       config:
         showPicker: true
         overrides: []
