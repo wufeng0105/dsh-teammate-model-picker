@@ -3,6 +3,17 @@
 本插件只声明它**真的验证过**的 DSH 版本；`engines.dsh` 与 `host/contracts.mjs` 的
 `TESTED_DSH_VERSION`、以及本文件的记录由 `scripts/check-version.mjs` 断言三者一致。
 
+## 0.3.1
+
+发布链路对齐（不改代码）。
+
+- `package.json` 的描述与关键词在 `v0.3.0` 打 tag **之后**才改，导致 tag 树的包与已发布的
+  npm 0.3.0 不同源。本版重切：tag 树 == 工作树 == npm 包（可用 `npm pack` 的 shasum 与
+  `npm view dist.shasum` 比对核实）。
+- 仓库增加收录条目副本 `market/`，并忽略 `npm pack` 产物 `*.tgz`。
+
+已适配（verified）：**DSH 0.2.1-rc.5**。
+
 ## 0.3.0
 
 面向发布的清理。

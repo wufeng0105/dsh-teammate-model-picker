@@ -1,20 +1,26 @@
 {
   "name": "@wufeng0105/dsh-teammate-model-picker",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
-  "description": "Give DSH teammate (continuable subagent) sessions their own model picker: switch a teammate to another available model without touching the Lead session or the global default model.",
+  "description": "给 DSH 队友会话加一个模型选择器：队友额度用完时直接换个还有额度的模型让它继续跑，不用重建队友，也不影响你的会话和全局默认模型。",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wufeng0105/dsh-teammate-model-picker.git"
   },
   "keywords": [
-    "deepseek",
-    "harness",
     "dsh",
-    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "cordis",
+    "plugin",
+    "bundle",
     "subagent",
-    "model-selection"
+    "agent-teams",
+    "teammate",
+    "model-switcher",
+    "model-selection",
+    "quota"
   ],
   "icon": "icon.svg",
   "exports": {

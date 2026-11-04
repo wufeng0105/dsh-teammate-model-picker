@@ -15,6 +15,9 @@ node_modules/
 npm-debug.log*
 pnpm-debug.log*
 
+# Pack artifacts (npm pack writes them next to package.json)
+*.tgz
+
 # Backups
 *.bak
 *.bak-*
