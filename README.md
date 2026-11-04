@@ -2,9 +2,7 @@
 
 给 DeepSeek Harness（DSH）的**队友会话**加一个模型选择器。
 
-在队友因为额度耗尽而失败之后，你可以直接给它换一个有额度的模型，然后让它继续跑 —— 不必注销重建队友，也不影响你自己的会话或全局默认模型。
-
----
+队友因为额度耗尽而失败之后，你可以直接给它换一个有额度的模型，然后让它继续跑 —— 不必注销重建队友，也不影响你自己的会话或全局默认模型。
 
 ## 它解决什么问题
 
@@ -15,7 +13,7 @@ DSH 的队友（teammate / 可继续的 subagent）在**被派发的那一刻**�
 - 你在 GUI 里切换自己的模型，它不受影响；
 - 给它发"继续"，它会在同一条已耗尽的路由上再失败一次。
 
-而 DSH 现有的"切换模型"能力对队友会话是**明确拒绝**的：Client 侧官方选择器对 subagent 会话直接返回空，Host 侧通用 Session 路由对 `origin: "subagent"` 的会话一律返回 `session/agent-busy`。队友会话的模型座位因此是空的。
+而 DSH 现有的"切换模型"能力对队友会话是**明确拒绝**的：Client 侧官方选择器对 subagent 会话直接返回空，Host 侧通用 Session 路由对 `origin: "subagent"` 的会话一律返回 `session/agent-busy`。队友会话的模型座位因此是空的。（为什么拒绝是三层叠加的、缝隙在哪里，[DESIGN.md](./DESIGN.md) 有完整论证。）
 
 ## 它做了什么
 
@@ -24,14 +22,7 @@ DSH 的队友（teammate / 可继续的 subagent）在**被派发的那一刻**�
 - **Host 半边**：把"每个队友的模型覆盖"存成插件 Config（`overrides`），在队友 Agent 发布时（`agent/created`）为它安装与官方 `installModelSelection` 等价的三个 waterfall，覆盖 `agent/request` 的最终路由。
 - **Client 半边**：在 composer 工具行的 `conversation.input.right` 座位注册一个模型选择器，观感对齐官方选择器（两级菜单：模型 / 推理等级）。只在队友会话里渲染。
 
-关键取舍：
-
-- **不修改任何官方包**，不改 `app.asar`。
-- **不引入新的 session 事件类型** —— 只复用既有的 `model/selection`。
-- **不改变"队友路由由派发决定"这条语义** —— 没有覆盖时，descriptor 路由原样生效，插件一行代码都不介入。
-- **不动全局默认模型** —— 从不调用 `agentDefaultModel.saveSelection`。
-
-完整的设计理由（为什么只能走这条缝、为什么座位是相邻的、分层与依赖方向）见 [DESIGN.md](./DESIGN.md)。
+四条硬约束：不改任何官方包、不引入新 session 事件类型、没有 override 时零介入（派发路由原样生效）、不动全局默认模型。分层与依赖方向见 [DESIGN.md](./DESIGN.md)。
 
 ## 安装
 
@@ -39,9 +30,7 @@ DSH 的队友（teammate / 可继续的 subagent）在**被派发的那一刻**�
 plugin_manager install_bundle  target = <本目录绝对路径>
 ```
 
-返回 `application: applied` 且 `warnings: []` 即生效。
-
-卸载：
+返回 `application: applied` 且 `warnings: []` 即生效。卸载：
 
 ```powershell
 plugin_manager remove_bundle  target = @wufeng0105/dsh-teammate-model-picker
@@ -68,7 +57,7 @@ plugin_manager remove_bundle  target = @wufeng0105/dsh-teammate-model-picker
 npm run check
 ```
 
-6 道静态/契约门（身份一致、依赖方向、样式 token、打包清单、版本区间、文档预算与可追溯性）+ 离线契约测试（Host fake-DSH、Client vm、负例自检）。负例保证每道门都能变红。
+静态与契约门（身份、依赖方向、样式 token、打包清单、版本区间、文档预算）+ 离线契约测试（Host fake-DSH、Client vm、负例自检）。负例保证每道门都能变红。
 
 **环境检查**：
 
@@ -87,7 +76,7 @@ node tools/session-model-log.mjs <teammateSessionId>
 
 ## 已知限制
 
-- **选择器落在相邻座位**，不是官方那个模型座位 —— 官方座位是 `single`，再注册一个会遮蔽官方组件、连 Lead 自己的选择器一起弄没。视觉接近，但 tooltip/aria 与键盘 Tab 序列与官方不完全同源。
+- **选择器落在相邻座位**，不是官方那个模型座位。视觉接近，但 tooltip/aria 与键盘 Tab 序列与官方不完全同源。
 - **复制了官方 CSS**（类名前缀 `tmp_`，只用主题 token）。官方改版样式时需要同步；token 改名只退化外观、不会崩。
 - **没有模型白名单**：展示的是运行时目录全量。若部署启用了子代理模型白名单，二者可能不一致。
 - **切换在活跃 turn 中生效于下一个 step**：与官方 `installModelSelection` 语义一致，不中断进行中的请求。
@@ -95,11 +84,11 @@ node tools/session-model-log.mjs <teammateSessionId>
 
 ## 与官方的关系
 
-这份实现是**本地绕过**，不是官方正解。其中几条更适合由 DSH 官方修：队友会话被排除在模型选择器之外、Host 侧对 subagent-owned 会话的一刀切拒绝、descriptor 不可改写、`selectModel` 顺带持久化全局默认模型。详见 [REPORT.md](./REPORT.md) 的「上游建议」。
+这份实现是**本地绕过**，不是官方正解：队友会话被排除在模型选择器之外、Host 侧对 subagent-owned 会话的一刀切拒绝、descriptor 不可改写、`selectModel` 顺带持久化全局默认模型 —— 这几条更适合由 DSH 官方修，官方修复到位后本插件应评估退役。逐条论证见 [REPORT.md](./REPORT.md) 的「上游建议」。
 
 ## 仓库内容
 
-公开仓库是本地项目的子集：内部工作文档（决策记录、写作账本、耦合审计、改造方案）不随仓库发布。`REPORT.md` 与 `DESIGN.md` 里提到它们的位置在仓库中读不到，属预期。
+公开仓库是本地项目的子集：内部工作文档（决策记录、写作账本、耦合审计、改造方案）不随仓库发布，正文中提到它们的位置在仓库里读不到，属预期。
 
 ## License
 

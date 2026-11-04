@@ -1,6 +1,6 @@
 # 设计：为什么只能这样绕
 
-这份文档回答一个问题：为什么这个插件是这样的形状。它只放稳定结论——会随代码变化的东西（契约清单、验证信号、断言）都在代码里，见文末的指针。
+这份文档回答一个问题：为什么这个插件是这样的形状。它只放稳定结论——会随代码变化的东西（契约清单、验证信号、断言）都在代码里，见文末的指针。现象与用法在 [README.md](./README.md)；术语见 [CONTEXT.md](./CONTEXT.md)。
 
 ## 1. 派发路由为什么换不了
 
@@ -73,15 +73,14 @@ Client 用户点选
 | 不 append 新 `type` 的 session 事件；不 require 任何 `@deepseek-ai/dsh-client-*`；样式只用 token | 已满足 |
 | 显示元数据：locale `meta.*` + icon，且 `exports`/`files` 齐备；发布前验证实际打包清单 | 已满足（`scripts/check-pack.mjs` 断言） |
 | 可调值放 `Config`，让用户在 patch 层改 | 已满足（`showPicker` 真的生效，不再是无行为的字段） |
-| 对应用数据与配置的操作应对 UI 与 agent 各有一个调用者 | **未落地**：`picker` 已收敛为单一实现，但 tool 注册未接线（需要一次 `cordis_inspect_query` 的 Tool inspection；本会话工具集中没有该工具） |
+| 对应用数据与配置的操作应对 UI 与 agent 各有一个调用者 | **未落地**：picker 已收敛为单一实现，但 tool 注册未接线（需要一次 `cordis_inspect_query` 的 Tool inspection） |
 | 每个 Service/Event/派发模式在依赖前用 inspection 确认；已安装的 Harness 是权威 | 部分：清单与运行期自证已就位（`host/adapters/probe.mjs`），但 inspection 本身未执行，见上 |
 | `engines.dsh` 与已测版本一致 | 已满足（`scripts/check-version.mjs` 断言 range、`TESTED_DSH_VERSION`、CHANGELOG 三者一致） |
 | Client 单文件内分层 | 偏离：Client 产物必须是单模块，因此分层以文件内 region + 脚本规则表达 |
 
 ## 8. 其余指针
 
-- 决策记录（含本机环境细节）：`DECISIONS.md`（不入公开仓库）。
-- 验证记录与未验证边界：`REPORT.md`。
-- 术语：`CONTEXT.md`。
+- 验证状态与未验证边界：[REPORT.md](./REPORT.md)。
+- 决策记录与组级账本（含本机环境细节）：`DECISIONS.md`（不入公开仓库）。
 - 契约清单：`host/adapters/probe.mjs` 的 `CONTRACTS`（`node tools/doctor.mjs --contracts` 打印）。
-- 门：`npm run check`（静态 + 契约），行为门见 `REPORT.md`。
+- 门：`npm run check`（静态 + 契约），行为门见 REPORT。
