@@ -91,13 +91,11 @@ node tools/session-model-log.mjs <teammateSessionId>
 
 ## 与官方的关系
 
-这份实现是**本地绕过**，不是官方正解：队友会话被排除在模型选择器之外、Host 侧对 subagent-owned 会话的一刀切拒绝、descriptor 不可改写、`selectModel` 顺带持久化全局默认模型 —— 这几条更适合由 DSH 官方修，官方修复到位后本插件应评估退役。逐条论证见 [REPORT.md](./REPORT.md) 的「上游建议」。
+这份实现是**本地绕过**，不是官方正解 —— 官方修复到位后本插件应评估退役。具体哪几条该由官方修，见 [REPORT.md](./REPORT.md) 的「上游建议」。
 
 ## 仓库内容
 
-公开仓库是本地项目的子集：内部工作文档（决策记录、写作账本、耦合审计、改造方案）不随仓库发布，正文中提到它们的位置在仓库里读不到，属预期。
-
-维护者发布流程（push → Tag → Release → npm，含一致性核对与回滚）见 [RELEASE.md](./RELEASE.md)。
+公开仓库是本地项目的子集：内部工作文档（决策记录、写作账本、耦合审计、改造方案）不随仓库发布。维护者发布流程见 [RELEASE.md](./RELEASE.md)。
 
 ## License
 

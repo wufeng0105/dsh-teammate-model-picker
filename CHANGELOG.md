@@ -1,7 +1,8 @@
 # 变更记录
 
-本插件只声明它**真的验证过**的 DSH 版本；`engines.dsh` 与 `host/contracts.mjs` 的
-`TESTED_DSH_VERSION`、以及本文件的记录由 `scripts/check-version.mjs` 断言三者一致。
+本插件只声明它**真的验证过**的 DSH 版本：`engines.dsh`、`host/contracts.mjs` 的
+`TESTED_DSH_VERSION`、以及本文件三处由 `scripts/check-version.mjs` 断言一致。
+下文各版「已适配」指的就是这个已测版本。
 
 ## 0.3.2
 
