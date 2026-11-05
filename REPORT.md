@@ -41,13 +41,32 @@ node tools/session-model-log.mjs <teammateSessionId>
 
 这些是**当时**的观察：它们现在由「由谁判定」的断言与行为门重新判定，不再由这段文字保证。
 
+### 3.2 0.3.2 的 registry 安装端到端（2026-11-05，实测）
+
+装的是 npm 上的 0.3.2（独立副本：inode 与工作树不同、全树无符号链接、硬链接指向 pnpm store）。一条真实队友会话走完 7 项：
+
+| 验证项 | 依据 | 结果 |
+|---|---|---|
+| 覆盖落盘并改变真实路由 | profile patch 133 → 141 行；`request/header` 由派发路由变为 override | 通过 |
+| 覆盖跨唤醒存活 | 期间无人重选，重新唤起仍走 override | 通过 |
+| 清除覆盖并归还派发路由 | 141 → 133 行（整行删除）；`request/header` 回到 descriptor 路由 | 通过 |
+| Client 半已注册 | `Slots.listSubTree` 的 occupant `active: true` | 通过 |
+| 运行时文件与仓库一致 | 20 个运行时文件逐个 SHA-256 相同（drift = 0） | 通过 |
+
+两次失败都不在本插件：第一次额度耗尽；第二次是清除覆盖后回到派发路由、而该路由凭证已失效。期间 `agent-default-model` 与 `dsh-draft-studio` 两行也变了，但本插件的写入负载只有 `{showPicker, overrides}`，形状对不上（实际操作来源未取证）。
+
+活体取证（免审批，`cordis_inspect_query`）：`Config.listConfigs` 该行 `status: schema` 且两字段带 `x-cordis.volatile: true`；Loader 侧 `enabled: true` / `fiberPhase: active`；Client 侧 occupant `{id: teammate-model-picker, order: 10, active: true}`。
+
+**`doctor` C2 的语义提醒**：C2 查的是「用户配置层有没有覆盖行」，不是「bundle 是否挂载」。安装后未选过模型、以及点了「恢复派发路由」之后，C2 都会 FAIL —— 那是正常状态。
+
 ## 4. 未验证的边界（如实列出）
 
 - **没有自动读取 DOM**：本机 Electron 未开 remote-debugging-port，GUI 需要鉴权。视觉对齐的依据是用户截图 + 座位占用值，不是自建截图。
 - **渲染核对未执行**：规范要求安装后核对 `meta.title`/`description` 与渲染出的图标（中英各一遍）。静态部分已由打包与文档门断言（locale 双语的键集一致、`meta.*` 非空、icon 与 locale 都在 `exports`/`files` 里），**渲染结果本身未核对** —— 需要一次 GUI 操作。
 - **运行期 API 查阅未执行**：契约清单里的服务/事件形状目前由运行期自证（probe）盯着，没有用 inspection 工具逐条核对过（当时的工作环境里没有该工具）。
 - **安装态未重载**：源码以 `link:` 挂进 profile，0.2.0 起的改动需要重载/重启 DSH 才在运行中的会话里生效；交付时未触发重启。
-- **行为门未在新版上重跑**：0.2.0 的分层重写不改变路由语义，且 I-1/I-2 与 waterfall 行为均有离线断言，但 B-1…B-5 尚未在真机上重跑一遍。
+- **行为门未在新版上重跑**：0.2.0 的分层重写不改变路由语义，且 I-1/I-2 与 waterfall 行为均有离线断言；3.2 已在 0.3.2 上跑过一轮，但多队友并发、同一队友连续切换、`showPicker=false` 仍未执行。
+- **其余安装形态未复测**：除 registry 与目录 link 外的形态（裸路径、`file:` 目录、`file:` tgz）本机没有实测。
 
 ## 5. 上游建议（截至 DSH 0.2.1-rc.5）
 

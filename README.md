@@ -26,11 +26,18 @@ DSH 的队友（teammate / 可继续的 subagent）在**被派发的那一刻**�
 
 ## 安装
 
+已发布到 npm。用包名安装（registry 形态：装的是独立副本，之后改源码不影响它）：
+
 ```powershell
-plugin_manager install_bundle  target = <本目录绝对路径>
+plugin_manager install_bundle  target = @wufeng0105/dsh-teammate-model-picker
 ```
 
-返回 `application: applied` 且 `warnings: []` 即生效。卸载：
+开发时也可以直接指向本目录（link 形态：改源码立即生效）。两种形态都返回
+`application: applied` 且 `warnings: []` 即生效。安装写 profile 的 `package.json`
+（依赖，精确版本 + `dsh.profile.bundles`）、`pnpm-lock.yaml`、`pnpm-workspace.yaml`，
+**不会**动用户配置层。裸路径与 `file:` 形态本机未复测。
+
+卸载：
 
 ```powershell
 plugin_manager remove_bundle  target = @wufeng0105/dsh-teammate-model-picker

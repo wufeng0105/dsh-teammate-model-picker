@@ -112,6 +112,20 @@ npm view @wufeng0105/dsh-teammate-model-picker dist-tags --registry=https://regi
 | 发布后 `npm view` 仍是旧版 | CDN 缓存 | 按上面的版本端点查；通常几十秒到几分钟 |
 | npm 里多出 `<x>.0.0-stage` 之类 | staged publishing 的自动占位版本 | 不是发布物；不在 dist-tags 里，可留在网页端删除（bypass token 无权删） |
 
+### 3.4 发布后确认「装得上、真的活」
+
+线上可见 ≠ 装得上。用 registry 形态装一次（不是从工作树装），再做活体取证：
+
+```
+plugin_manager  action=install_bundle  target=@wufeng0105/dsh-teammate-model-picker@<VER>
+# 校验点：application=applied、warnings=[]、version=<VER>
+
+cordis_inspect_query platform=host   provider=Config method=listConfigs input={"name":"<包名>"}   # status: schema
+cordis_inspect_query platform=client provider=Slots  method=listSubTree  input={"root":"conversation.input.right"}   # occupant active: true
+```
+
+两种形态要说清：registry 与 `file:` tgz 装的是**独立副本**（改源码不影响，要重装）；从目录装是 **link**，改源码立即生效。验证线上包必须用前者。
+
 ## 4. 三者一致性核对（发布完成的判定）
 
 四条都成立才算发完：
