@@ -61,8 +61,8 @@ window.__ModuleLoader__.load({
 		/* L1 core: pure decisions — no ctx, no DOM below this banner.        */
 		/* ------------------------------------------------------------------ */
 		const zh = {
-			'picker.label': '队友模型',
-			'picker.hint': '为这个队友切换模型；不影响主线会话和全局默认模型',
+			'picker.label': '这个队友用的模型',
+			'picker.hint': '只换这个队友的模型；你自己的对话和全局默认模型都不受影响',
 			'picker.override': '（队友）',
 			'picker.model': '模型',
 			'picker.effort': '推理等级',
@@ -75,11 +75,11 @@ window.__ModuleLoader__.load({
 			'picker.empty': '没有可用的模型',
 			'picker.noResults': '没有匹配的模型',
 			'picker.back': '返回',
-			'picker.clear': '恢复派发路由',
+			'picker.clear': '用回它原来的模型',
 		};
 		const en = {
-			'picker.label': 'Teammate model',
-			'picker.hint': 'Switch this teammate to another model; the Lead session and the global default model are unchanged',
+			'picker.label': 'This teammate’s model',
+			'picker.hint': 'Changes only this teammate’s model; your own conversation and the global default model are untouched',
 			'picker.override': '(teammate)',
 			'picker.model': 'Model',
 			'picker.effort': 'Reasoning effort',
@@ -92,7 +92,7 @@ window.__ModuleLoader__.load({
 			'picker.empty': 'No models available',
 			'picker.noResults': 'No matching models',
 			'picker.back': 'Back',
-			'picker.clear': 'Use dispatched route',
+			'picker.clear': 'Go back to its original model',
 		};
 
 		/** The group ids the product groups first; unknown ids keep their order. */

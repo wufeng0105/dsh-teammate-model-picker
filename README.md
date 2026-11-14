@@ -1,41 +1,45 @@
 # dsh-teammate-model-picker
 
-给 DeepSeek Harness（DSH）的**队友会话**加一个模型选择器。
+给 DeepSeek Harness 里的队友（子智能体）手动换个模型。
 
-队友因为额度耗尽而失败之后，你可以直接给它换一个有额度的模型，然后让它继续跑 —— 不必注销重建队友，也不影响你自己的会话或全局默认模型。
+## 先说人话
 
-## 它解决什么问题
+在 DeepSeek Harness 里，主智能体可以派几个队友分头干活。每个队友被派出去的那一刻，就绑定了一个模型，之后一直用它：
 
-DSH 的队友（teammate / 可继续的 subagent）在**被派发的那一刻**就把当时 Lead 使用的模型写进了自己的会话描述（durable descriptor）。此后每次唤醒 —— 收到消息、恢复运行、冷恢复 —— 都按这份描述里的模型路由，**不会重新解析当前默认模型**。
+- 你给自己换模型，队友不受影响；
+- 官方的模型选择器在队友会话里根本不出现；
+- 后台换模型的接口见到队友会话，一律拒绝——所以队友的模型是"焊死"的，你改不了。
 
-于是当队友被钉在一个已耗尽额度的模型上时：
+问题就出在这儿：队友那个模型的额度用完了。从那以后，你给它发什么它都报错，说"继续"也继续失败。以前唯一的办法是把这个队友删掉、重新派一个，之前干到哪、说过什么全没了。
 
-- 你在 GUI 里切换自己的模型，它不受影响；
-- 给它发"继续"，它会在同一条已耗尽的路由上再失败一次。
+这个插件补的就是这个洞：**打开队友会话，输入框旁边多一个模型下拉框，手动给这个队友挑个模型。** 换成还有额度的模型，再发一句"继续"，它就接着干了。不用重建队友，你自己的模型和全局默认模型都不受影响。
 
-而 DSH 现有的"切换模型"能力对队友会话是**明确拒绝**的：Client 侧官方选择器对 subagent 会话直接返回空，Host 侧通用 Session 路由对 `origin: "subagent"` 的会话一律返回 `session/agent-busy`。队友会话的模型座位因此是空的。（为什么拒绝是三层叠加的、缝隙在哪里，[DESIGN.md](./DESIGN.md) 有完整论证。）
+## 为什么官方换不了
 
-## 它做了什么
+不是 bug，是三层设计叠在一起，把队友的模型位置焊死了（完整论证见 [DESIGN.md](./DESIGN.md)）：
 
-一个 DSH 插件 bundle，分两半：
+1. 队友出生那一刻，当时的模型就写进了它的"档案"，之后每次唤醒都按档案走，不再重新读取你后来改的默认模型；
+2. 官方的模型选择器看到是队友会话，直接不显示；
+3. 后台通用的换模型接口，对队友会话一律拒绝。
 
-- **Host 半边**：把"每个队友的模型覆盖"存成插件 Config（`overrides`），在队友 Agent 发布时（`agent/created`）为它安装与官方 `installModelSelection` 等价的三个 waterfall，覆盖 `agent/request` 的最终路由。
-- **Client 半边**：在 composer 工具行的 `conversation.input.right` 座位注册一个模型选择器，观感对齐官方选择器（两级菜单：模型 / 推理等级）。只在队友会话里渲染。
+## 插件怎么做到的
 
-四条硬约束：不改任何官方包、不引入新 session 事件类型、没有 override 时零介入（派发路由原样生效）、不动全局默认模型。分层与依赖方向见 [DESIGN.md](./DESIGN.md)。
+不改官方任何代码，分前后两半：
+
+- **后台**：记住"哪个队友被你换成了哪个模型"，队友每次发请求前先查这张表——查到了就用你选的，查不到就一切照旧；
+- **界面**：在队友会话输入框的工具行加那个下拉框，外观对齐官方选择器（先选模型、再选推理等级），只在队友会话里出现。
+
+四条底线：不改官方代码；没换过的队友原样运行；不动你的会话；不动全局默认模型。
 
 ## 安装
 
-已发布到 npm。用包名安装（registry 形态：装的是独立副本，之后改源码不影响它）：
+已发布到 npm，直接按包名装（装的是独立副本，之后改源码不影响它）：
 
 ```powershell
 plugin_manager install_bundle  target = @wufeng0105/dsh-teammate-model-picker
 ```
 
-开发时也可以直接指向本目录（link 形态：改源码立即生效）。两种形态都返回
-`application: applied` 且 `warnings: []` 即生效。安装写 profile 的 `package.json`
-（依赖，精确版本 + `dsh.profile.bundles`）、`pnpm-lock.yaml`、`pnpm-workspace.yaml`，
-**不会**动用户配置层。裸路径与 `file:` 形态本机未复测。
+开发时也可以直接指向本目录（改源码立即生效）。两种方式都返回 `application: applied` 且 `warnings: []` 就算装好了。安装只会写进 profile 的 `package.json`、`pnpm-lock.yaml`、`pnpm-workspace.yaml`，**不会**动你的配置。裸路径和 `file:` 写法本机未复测。
 
 卸载：
 
@@ -43,62 +47,51 @@ plugin_manager install_bundle  target = @wufeng0105/dsh-teammate-model-picker
 plugin_manager remove_bundle  target = @wufeng0105/dsh-teammate-model-picker
 ```
 
-> 三个层面要分清：**安装/卸载 bundle** 改的是 profile 的 `package.json` 里 `dsh.profile.bundles`；**bundle 默认**在源 `cordis.patch.yml` 里；**用户配置**（你选的模型）在用户 profile patch 层的 `- id: teammate-model-picker` 这一行。清空用户配置 ≠ 卸载 bundle。
+> 分清三层：**安装/卸载 bundle** 改的是 profile `package.json` 里的 `dsh.profile.bundles`；**bundle 的默认值**在源 `cordis.patch.yml` 里；**你选的模型**存在用户 profile 的 patch 层。清空用户配置不等于卸载 bundle。
 
 ## 使用
 
-1. 打开一个队友会话。
-2. composer 工具行右侧会出现模型选择器（显示当前模型 + 推理等级）。
-3. 点开 → 「模型」→ 选一个还有额度的模型。
-4. 给队友发"继续"。
+1. 打开一个队友会话；
+2. 输入框工具行右侧出现模型选择器（显示当前模型和推理等级）；
+3. 点开 →「模型」→ 选一个还有额度的，然后给队友发"继续"。
 
-改动立即生效，并写入用户 profile patch 层，**重启 Harness 后依然生效**。菜单里的「恢复派发路由」会删掉这个队友的 override，让它回到派发时钉下的那条路由。
+改动立即生效，重启 Harness 后依然有效。菜单里的「用回它原来的模型」会删掉这个队友的改动，让它回到派发时的模型。
 
-`Config.showPicker` 是真正的开关：设为 `false` 时选择器不渲染（默认 `true`）。
+`Config.showPicker` 是总开关：设为 `false` 就不显示选择器（默认 `true`）。
 
 ## 验证
 
-**离线门（一条命令，秒级）**：
-
-```powershell
-npm run check
-```
-
-静态与契约门（身份、依赖方向、样式 token、打包清单、版本区间、文档预算）+ 离线契约测试（Host fake-DSH、Client vm、负例自检）。负例保证每道门都能变红。
+**离线检查（一条命令，秒级）**：`npm run check`。静态门 + 离线契约测试（模拟 DSH、模拟客户端、负例自检），负例保证每道门都能变红。
 
 **环境检查**：
 
 ```powershell
-node tools/doctor.mjs              # 版本区间 / row / 会话日志格式 / schema 协议自述
+node tools/doctor.mjs              # 版本区间 / row / 会话日志格式 / schema 协议
 node tools/doctor.mjs --contracts  # 打印本插件依赖的契约清单
 ```
 
-**行为门（需要真机队友会话）**：换模型是否真的生效，只能由一条真实会话判定。
+**行为检查（需要真机队友会话）**：换模型到底有没有生效，只能由一条真实会话判定。
 
 ```powershell
 node tools/session-model-log.mjs <teammateSessionId>
 ```
 
-它解压 `session.v4.jsonl.zstd` 并打印四类事件：`subagent/descriptor`（派发时钉下的路由）、`model/selection`（切换意图）、`request/header`（每次请求实际用的路由）、`turn/end`（含失败原因）。判定标准与历史实测见 [REPORT.md](./REPORT.md)。
+它解压 `session.v4.jsonl.zstd`，打印四类事件：派发时定的路由、切换意图、每次请求实际用的路由、回合结束原因。判定标准和历史实测见 [REPORT.md](./REPORT.md)。
 
 ## 已知限制
 
-- **选择器落在相邻座位**，不是官方那个模型座位。视觉接近，但 tooltip/aria 与键盘 Tab 序列与官方不完全同源。
-- **复制了官方 CSS**（类名前缀 `tmp_`，只用主题 token）。官方改版样式时需要同步；token 改名只退化外观、不会崩。
-- **没有模型白名单**：展示的是运行时目录全量。若部署启用了子代理模型白名单，二者可能不一致。
-- **切换在活跃 turn 中生效于下一个 step**：与官方 `installModelSelection` 语义一致，不中断进行中的请求。
-- **对 agent 暴露的操作尚未接线**：换模型目前只有 UI 路径，规范要求的 agent tool 还没注册（需要一次运行期 API 查阅）。
+- **选择器是"挨着放"的**：不在官方那个模型座位上，视觉接近，但无障碍标签和 Tab 顺序跟官方不完全一样；
+- **复制了官方样式**：官方改版后要同步；样式 token 改名只会变丑，不会崩；
+- **没有模型白名单**：显示的是全部可用模型，部署方如果配了子代理模型白名单，两者可能不一致；
+- **运行中的回合要等下一步才切**：和官方语义一致，不打断进行中的请求；
+- **目前只有界面换模型**：给 agent 用的工具接口还没接上。
 
-## 与官方的关系
+## 和官方的关系
 
-这份实现是**本地绕过**，不是官方正解 —— 官方修复到位后本插件应评估退役。具体哪几条该由官方修，见 [REPORT.md](./REPORT.md) 的「上游建议」。
-
-## 仓库内容
-
-公开仓库是本地项目的子集：内部工作文档（决策记录、写作账本、耦合审计、改造方案）不随仓库发布。维护者发布流程见 [RELEASE.md](./RELEASE.md)。
+这是**本地绕过方案**，不是官方答案。官方哪天把队友会话也纳入模型选择器，这个插件就该退休了。哪几条该由官方修，见 [REPORT.md](./REPORT.md) 的「上游建议」。
 
 ## License
 
-MIT，见 [LICENSE](./LICENSE)。
+MIT，见 [LICENSE](./LICENSE)。公开仓库是本地项目的子集：内部工作文档不随仓库发布，正文里提到它们但仓库里读不到，属正常。
 
-`vendor/` 下的 `@deepseek-ai/schemastery` 3.18.5 与 `@deepseek-ai/cosmokit` 1.8.6 为原样内置的第三方代码（MIT），各自保留 LICENSE 文件。之所以内置，是因为 bundle 以 `link:` 方式挂入 profile 时，裸包导入无法解析。
+`vendor/` 下的第三方代码原样内置（MIT，各自保留 LICENSE）：`@deepseek-ai/schemastery` 3.18.5、`@deepseek-ai/cosmokit` 1.8.6。内置是因为 bundle 以 `link:` 方式挂入 profile 时，裸包导入无法解析。

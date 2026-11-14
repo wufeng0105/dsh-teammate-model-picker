@@ -19,7 +19,7 @@
 | 身份一致、依赖方向、样式 token、打包清单、版本区间、文档预算 | `scripts/check-*.mjs`（`npm run check`） |
 | 版本区间 vs 本机运行时、会话日志格式、schema 协议自述 | `tools/doctor.mjs` 的 C1／C3／C4 |
 
-`tools/doctor.mjs` 的 C2 单独说明：它查的是**用户配置层里有没有 override 行**，不是「bundle 装没装」。安装后没选过模型、以及点了「恢复派发路由」之后，C2 都会 FAIL —— 属正常状态；要判断装没装，看 profile 的 `dsh.profile.bundles` 与 `node_modules` 能否解析。
+`tools/doctor.mjs` 的 C2 单独说明：它查的是**用户配置层里有没有 override 行**，不是「bundle 装没装」。安装后没选过模型、以及点了「用回它原来的模型」之后，C2 都会 FAIL —— 属正常状态；要判断装没装，看 profile 的 `dsh.profile.bundles` 与 `node_modules` 能否解析。
 
 ## 2. 只需要真机判定的部分（行为门）
 行为门必须有一条真实的队友会话，因此不进 `npm run check`。步骤与判定标准：
